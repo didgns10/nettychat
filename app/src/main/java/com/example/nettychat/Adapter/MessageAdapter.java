@@ -20,6 +20,8 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
     private ArrayList<MessageData> mList;
@@ -47,6 +49,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull MessageAdapter.ViewHolder holder, final int position) {
 
+        //로그인 저장 정보
+        sf = context.getSharedPreferences("LOGIN",MODE_PRIVATE);
+        email = sf.getString("et_email","");
 
         if(mList.get(position).getServer().equals("send")){
             if(mList.get(position).getMessage().equals("")){
@@ -115,7 +120,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             holder.tv_name.setText(mList.get(position).getName());
 
         }
-      /*  else if(mList.get(position).getServer().equals("mysql")){
+        else if(mList.get(position).getServer().equals("mysql")){
             if(mList.get(position).getEmail().equals(email)){
 
                 if(mList.get(position).getMessage().equals("")){
@@ -123,8 +128,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                     holder.tv_mymessage.setVisibility(View.GONE);
 
                     Glide.with(context).load(mList.get(position).getImage())
-                            *//*.diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .skipMemoryCache(true)*//*.into(holder.img_my);
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .skipMemoryCache(true).into(holder.img_my);
                     holder.img_my.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -154,8 +159,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                     holder.img.setVisibility(View.VISIBLE);
 
                     Glide.with(context).load(mList.get(position).getImage())
-                            *//*.diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .skipMemoryCache(true)*//*.into(holder.img);
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .skipMemoryCache(true).into(holder.img);
                     holder.img.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -177,13 +182,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 holder.tv_name.setVisibility(View.VISIBLE);
 
                 Glide.with(context).load(mList.get(position).getOpp_profile_img())
-                        *//*.diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .skipMemoryCache(true)*//*.into(holder.cimgv_profile);
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .skipMemoryCache(true).into(holder.cimgv_profile);
                 holder.tv_datetime.setText(mList.get(position).getDatetime());
                 holder.tv_name.setText(mList.get(position).getName());
 
             }
-        }*/
+        }
 
     }
 
