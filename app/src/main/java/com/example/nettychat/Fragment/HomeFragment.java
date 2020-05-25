@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.nettychat.Adapter.FriendAdapter;
 import com.example.nettychat.AddFriendActivity;
+import com.example.nettychat.ChatAddActivity;
 import com.example.nettychat.Model.FriendData;
 import com.example.nettychat.R;
 
@@ -133,8 +134,8 @@ public class HomeFragment extends Fragment {
                                 startActivity(intent4);
                                 break;
                             case R.id.add_chattion_room:
-/*                                Intent intent = new Intent(getContext(), Diary_Activity.class);
-                                startActivity(intent);*/
+                                Intent intent = new Intent(getContext(), ChatAddActivity.class);
+                                startActivity(intent);
                                 break;
                             default:
                                 break;

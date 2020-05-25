@@ -21,13 +21,14 @@
 
     <TextView
         android:id="@+id/tv_fname"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:text="주수호"
         android:textColor="#160202"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@+id/cimgv_fprofile"
+        app:layout_constraintEnd_toStartOf="@+id/btn_add"
         app:layout_constraintStart_toEndOf="@+id/cimgv_fprofile"
         app:layout_constraintTop_toTopOf="@+id/cimgv_fprofile" />
 
@@ -35,7 +36,9 @@
         android:id="@+id/btn_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="20dp"
         android:background="#0C0606"
         android:text="친구추가"
         android:textColor="#FFFFFF"

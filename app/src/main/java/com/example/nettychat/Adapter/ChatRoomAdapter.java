@@ -99,7 +99,7 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.ViewHo
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            constraintLayout = itemView.findViewById(R.id.constraintLayout);
+            constraintLayout = itemView.findViewById(R.id.constraintlayout);
             tv_name = (TextView) itemView.findViewById(R.id.tv_name);
             tv_content = (TextView) itemView.findViewById(R.id.tv_content);
             tv_time = (TextView) itemView.findViewById(R.id.tv_time);

@@ -1,28 +1,23 @@
-package com.example.nettychat.Fragment;
+package com.example.nettychat;
 
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.example.nettychat.Adapter.ChatRoomAdapter;
+import com.example.nettychat.Adapter.AddChatAdapter;
 import com.example.nettychat.Adapter.FriendAdapter;
-import com.example.nettychat.Model.ChatRoomData;
+import com.example.nettychat.Fragment.HomeFragment;
 import com.example.nettychat.Model.FriendData;
-import com.example.nettychat.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,18 +33,17 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.content.Context.MODE_PRIVATE;
-
-public class ChatFragment extends Fragment {
-
+public class ChatAddActivity extends AppCompatActivity {
 
     private RecyclerView rv;
     private static String IP_ADDRESS="13.125.232.78/netty";  // 퍼블릭 IPv4 주소
     private static String TAG = "스토리";          // 로그에 사용할 태그
 
-    private ArrayList<ChatRoomData> mArrayList;             // 모델 클래스의 데이터를 받아 리사이클러뷰에 뿌리는 데 쓸 ArrayList
-    private ChatRoomAdapter mAdapter;                       // 리사이클러뷰 어댑터
+    private ArrayList<FriendData> mArrayList;             // 모델 클래스의 데이터를 받아 리사이클러뷰에 뿌리는 데 쓸 ArrayList
+    private AddChatAdapter mAdapter;                       // 리사이클러뷰 어댑터
     private String mJsonString,mJsonString1;                         // JSON 값을 저장할 String 변수
+
+    private ImageButton button_add;
 
     private String email;
     private String name,profile;
@@ -58,31 +52,27 @@ public class ChatFragment extends Fragment {
     private SharedPreferences sf;
     private SharedPreferences sf_idx;
 
-    public ChatFragment() {
-        // Required empty public constructor
-    }
-
-
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_chat, container, false);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat_add);
 
         //로그인 저장 정보
-        sf = getActivity().getSharedPreferences("LOGIN",MODE_PRIVATE);
+        sf = getSharedPreferences("LOGIN",MODE_PRIVATE);
         email = sf.getString("et_email","");
 
-        sf_idx = getActivity().getSharedPreferences("USER_INFO",MODE_PRIVATE);
+        sf_idx = getSharedPreferences("USER_INFO",MODE_PRIVATE);
         name = sf_idx.getString("name","");
         user_idx = sf_idx.getString("user_idx","");
         profile = sf_idx.getString("profile","");
 
+        button_add =findViewById(R.id.imageButton_add);
+
         // 리사이클러뷰 선언
-        rv = (RecyclerView) rootView.findViewById(R.id.recyclerview);
+        rv = (RecyclerView) findViewById(R.id.recyclerview);
 
         // 프래그먼트기 때문에 context가 아니라 getActivity()를 쓴다!!!
-        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+        rv.setLayoutManager(new LinearLayoutManager(ChatAddActivity.this));
 
         // 프래그먼트기 때문에 구분선을 줄 때 context 부분에 getActivity()를 넣어야 한다
         // 그냥 getActivity()만 넣으면 노란 박스 쳐져서 안 보이게 하려고 getActivity()를 다르게 표현함
@@ -91,7 +81,7 @@ public class ChatFragment extends Fragment {
         mArrayList = new ArrayList<>();
 
         // 프래그먼트에서 리사이클러뷰의 어댑터를 붙일 땐 context 쓰는 부분에 getActivity()를 쓴다
-        mAdapter = new ChatRoomAdapter(mArrayList,getContext());
+        mAdapter = new AddChatAdapter(mArrayList,ChatAddActivity.this);
         rv.setAdapter(mAdapter);
 
         // 버튼 위에 표시되는 텍스트뷰에 mArrayList의 내용들을 뿌리는데 이것들을 전부 지우고
@@ -100,21 +90,33 @@ public class ChatFragment extends Fragment {
         // 어댑터에 데이터가 변경됐다는 걸 알린다
         mAdapter.notifyDataSetChanged();
 
+        button_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-        return rootView;
-    }
+                String data =user_idx;
+                ArrayList<FriendData> mList = ((AddChatAdapter) mAdapter).getFriendData();
 
-    @Override
-    public void onResume() {
-        super.onResume();
+                for(int i = 0; i< mList.size(); i++){
+                    FriendData friendData = mList.get(i);
+                    if(friendData.isF_invite() == true){
+                        data = data + "," + friendData.getF_friend_idx();
+                    }
+                }
+                GetData1 task1 = new GetData1();
+
+                // execute() 사용 시 DB의 값을 JSON 형태로 가져오는 코드가 적힌 php 파일의 경로를 적어
+                // AsyncTask로 값들을 JSON 형태로 가져올 수 있게 한다
+                task1.execute( "http://" + IP_ADDRESS + "/chat_add.php?friend_idx="+data, "");
+            }
+        });
 
         GetData task = new GetData();
 
         // execute() 사용 시 DB의 값을 JSON 형태로 가져오는 코드가 적힌 php 파일의 경로를 적어
         // AsyncTask로 값들을 JSON 형태로 가져올 수 있게 한다
-        task.execute( "http://" + IP_ADDRESS + "/chat_room_view.php?user_idx="+user_idx, "");
+        task.execute( "http://" + IP_ADDRESS + "/friend_view.php?user_idx="+user_idx, "");
     }
-
     /* HTTPUrlConnection을 써서 POST 방식으로 phpmyadmin DB에서 값들을 가져오는 AsyncTask 클래스 정의 */
     private class GetData extends AsyncTask<String, Void, String> {
 
@@ -229,15 +231,11 @@ public class ChatFragment extends Fragment {
     /* DB 테이블 컬럼의 값들을 JSON 형태로 받아와서 리사이클러뷰에 연결된 ArrayList에 박는 함수 */
     private void showResult() {
 
-        String TAG_JSON="chat_room";                         // JSON 배열의 이름
+        String TAG_JSON="user";                         // JSON 배열의 이름
 
         /* DB 컬럼명을 적는 String 변수 */
-        String TAG_ROOM_IDX = "room_idx";                      // 정적 이미지(나중에 DB에서 이미지 뽑아올 것)
-        String TAG_JOIN_TOTAL = "join_total";
-        String TAG_CHAT_JOINER = "chat_joiner";     // 밑으로 3개는
-        String TAG_TO_NAME = "to_name";
-        String TAG_MESSAGE = "message";
-        String TAG_DATEM = "datem";
+        String TAG_USER_IDX = "user_idx";                      // 정적 이미지(나중에 DB에서 이미지 뽑아올 것)
+        String TAG_NAME = "name";     // 밑으로 3개는
         String TAG_PROFILE = "profile";
 
         try {
@@ -255,28 +253,21 @@ public class ChatFragment extends Fragment {
 
                 // 컬럼의 값들을 getString()으로 받아와서 String 변수에 저장
                 // 정적 이미지는 나중에 DB에서 받아와야 한다. 일단 기본 이미지 채워넣음
-                String room_idx = item.getString(TAG_ROOM_IDX);
-                String join_total = item.getString(TAG_JOIN_TOTAL);
-                String chat_joiner = item.getString(TAG_CHAT_JOINER);
-                String to_name = item.getString(TAG_TO_NAME);
-                String message = item.getString(TAG_MESSAGE);
-                String datem = item.getString(TAG_DATEM);   // 운동 이름
+                String name = item.getString(TAG_NAME);
+                String user_idx = item.getString(TAG_USER_IDX);   // 운동 이름
                 String profile = item.getString(TAG_PROFILE);
 
                 // 데이터 모델 클래스 객체 선언 후 settter()로 컬럼에서 값 추출
-                ChatRoomData chatRoomData = new ChatRoomData();
+                FriendData friendData = new FriendData();
 
-                chatRoomData.setContent(message);
-                chatRoomData.setImage(profile);
-                chatRoomData.setName(chat_joiner);
-                chatRoomData.setRoom_idx(room_idx);
-                chatRoomData.setTime(datem);
-                chatRoomData.setJoin_total(join_total);
-
+                friendData.setF_friend_idx(user_idx);
+                friendData.setF_name(name);
+                friendData.setF_profile(profile);
+                friendData.setF_invite(false);
 
 
                 // 데이터 모델 클래스 객체를 리사이클러뷰에 연결된 ArrayList에 삽입
-                mArrayList.add(chatRoomData);
+                mArrayList.add(friendData);
 
                 // ArrayList에 변동이 생겼으니 어댑터에 알림
                 mAdapter.notifyDataSetChanged();
@@ -288,5 +279,116 @@ public class ChatFragment extends Fragment {
         }
 
     }   // showResult() end
+
+    /* HTTPUrlConnection을 써서 POST 방식으로 phpmyadmin DB에서 값들을 가져오는 AsyncTask 클래스 정의 */
+    private class GetData1 extends AsyncTask<String, Void, String> {
+
+        ProgressDialog progressDialog;
+        String errorString = null;
+
+        /* AsyncTask 작업 시작 전에 UI 처리할 내용을 정의하는 함수 */
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+/*            // 프래그먼트에 프로그레스 다이얼로그를 띄우고, 값이 가져와지는 동안 기다리라는 메시지를 띄운다
+            // 마찬가지로 프래그먼트를 쓰기 때문에 context 대신 getActivity() 사용
+            progressDialog = ProgressDialog.show(StoryVIewActivity.this,
+                    "Please Wait",
+                    null,
+                    true,
+                    true);*/
+        }
+
+        /* AsyncTask 작업 종료 후 UI 처리할 내용을 정의하는 함수 */
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+     /*       // 프로그레스 다이얼로그를 죽이고
+            progressDialog.dismiss();*/
+
+            // doInBackground()의 리턴값이 담긴 result를 버튼 밑 텍스트뷰에 setText()해서 JSON 형태로 받아온 값들을 출력
+//            mTextViewResult.setText(result);
+            Log.e(TAG, "response - " + result);
+
+            // 결과가 없으면 에러 때문에 못 받아온 거니까 에러 문구를 버튼 밑 텍스트뷰에 출력
+            if (result.equals("no")) {
+
+            } else {
+                String[] array = result.split(",");
+                Intent intent = new Intent(ChatAddActivity.this,MainActivity.class);
+                intent.putExtra("room_idx",array[0]);
+                startActivity(intent);
+            }
+        }
+
+        /* AsyncTask가 수행할 작업 내용을 정의하는 함수 */
+        @Override
+        protected String doInBackground(String... params) {
+
+            String serverURL = params[0];       // IP_ADDRESS에 적은 퍼블릭 IPv4 주소를 저장할 변수
+//            Log.e("params[0] : ", params[0].toString());
+            String postParameters = params[1];  // HttpUrlConnection 결과로 얻은 Request body에 담긴 내용들을 저장할 변수
+//            Log.e("params[1] : ", params[1].toString());
+
+
+            try {
+
+                URL url = new URL(serverURL);
+                Log.e("확인",serverURL);
+                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+
+
+                httpURLConnection.setReadTimeout(5000);
+                httpURLConnection.setConnectTimeout(5000);
+                httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.connect();
+
+
+                OutputStream outputStream = httpURLConnection.getOutputStream();
+                outputStream.write(postParameters.getBytes("UTF-8"));
+                outputStream.flush();
+                outputStream.close();
+
+
+                int responseStatusCode = httpURLConnection.getResponseCode();
+                Log.d(TAG, "response code - " + responseStatusCode);
+
+                InputStream inputStream;
+                if(responseStatusCode == HttpURLConnection.HTTP_OK) {
+                    inputStream = httpURLConnection.getInputStream();
+                }
+                else{
+                    inputStream = httpURLConnection.getErrorStream();
+                }
+
+
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                StringBuilder sb = new StringBuilder();
+                String line;
+
+                while((line = bufferedReader.readLine()) != null){
+                    sb.append(line);
+                }
+
+                bufferedReader.close();
+
+                return sb.toString().trim();
+
+
+            } catch (Exception e) {
+
+                Log.d(TAG, "GetData : Error ", e);
+                errorString = e.toString();
+
+                return null;
+            }
+
+        }
+    }
 
 }

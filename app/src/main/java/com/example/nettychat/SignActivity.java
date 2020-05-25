@@ -108,6 +108,12 @@ public class SignActivity  extends AppCompatActivity {
         pw = et_pw.getText().toString().trim();
         profileimg = imageToString();
 
+
+        Log.e("로그0",name);
+        Log.e("로그0",email);
+        Log.e("로그0",pw);
+        Log.e("로그0",profileimg);
+
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<ProfileClass> call = apiInterface.uploadImage1(email,name,pw,profileimg);
 
@@ -116,6 +122,7 @@ public class SignActivity  extends AppCompatActivity {
             public void onResponse(Call<ProfileClass> call, Response<ProfileClass> response) {
 
                 ProfileClass profileClass = response.body();
+                Log.e("로그0",response.body().getResponse()+"");
 
                 if(profileClass.getResponse().equals("no")){
                     Toast.makeText(SignActivity.this,"빈칸없이 채워주세요",Toast.LENGTH_SHORT).show();

@@ -19,7 +19,10 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.example.nettychat.Adapter.MessageAdapter;
+import com.example.nettychat.MessageRetrofit.MessageClass;
 import com.example.nettychat.Model.MessageData;
+import com.example.nettychat.SignRetrofit.ApiClient;
+import com.example.nettychat.SignRetrofit.ApiInterface;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,6 +42,9 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -64,10 +70,10 @@ public class MainActivity extends AppCompatActivity{
 
     private  String receive_name;
     private String receive_date;
-    private String receive_msg;
+    private String receive_msg,receive_room_idx;
 
     private String room_idx,email;
-    private String name,user_idx,profile;
+    private String name,user_idx,profile,images,return_msg;
 
     private SharedPreferences sf;
     private SharedPreferences sf_idx;
@@ -129,7 +135,7 @@ public class MainActivity extends AppCompatActivity{
 
         GetData task = new GetData();
 
-        task.execute( "http://" + IP_ADDRESS + "/message.php?room_idx="+room_idx+"&email="+email, "");
+        task.execute( "http://" + IP_ADDRESS + "/chat_db.php?room_idx="+room_idx+"&email="+email, "");
 
         handler = new Handler();
         new Thread(new Runnable() {
@@ -142,7 +148,6 @@ public class MainActivity extends AppCompatActivity{
                 } catch (Exception ioe) {
                     Log.d("asd", ioe.getMessage() + "a");
                     ioe.printStackTrace();
-
                 }
                 checkUpdate.start();
             }
@@ -152,17 +157,17 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 try {
-                    String name = "수호";
 
-                    final String return_msg = et_message.getText().toString();
-                    String img_url = "http://13.125.232.78/images/profile_test1@naver.com.jpg";
+                    images = "none";
+                    return_msg = et_message.getText().toString();
                     JSONObject jsonObject = new JSONObject();
 
                     try{
                         jsonObject.put("name",name);
                         jsonObject.put("date",formatDate);
                         jsonObject.put("msg",return_msg);
-                        jsonObject.put("img_url",img_url);
+                        jsonObject.put("img_url",profile);
+                        jsonObject.put("room_idx",room_idx);
 
                     }catch (JSONException e){
                         e.printStackTrace();
@@ -172,6 +177,7 @@ public class MainActivity extends AppCompatActivity{
                     if (!TextUtils.isEmpty(return_msg)) {
                         new SendmsgTask().execute(jsonObject.toString());
 
+                        uploadMessage();
                         String server = "send";
                         MessageData messageData = new MessageData();
 
@@ -275,6 +281,7 @@ public class MainActivity extends AppCompatActivity{
                 receive_name = (String)jsonObject.get("name");
                 receive_date = (String)jsonObject.get("date");
                 receive_msg = (String)jsonObject.get("msg");
+                receive_room_idx = (String)jsonObject.get("room_idx");
                 String opp_imgurl = (String)jsonObject.get("img_url");
 
                 Log.e("로그",receive_msg);
@@ -282,19 +289,23 @@ public class MainActivity extends AppCompatActivity{
                 Log.e("로그",receive_name);
                 Log.e("로그",opp_imgurl);
 
-                String server = "receive";
+                if(receive_room_idx.equals(room_idx)){
+                    String server = "receive";
 
-                MessageData messageData = new MessageData();
+                    MessageData messageData = new MessageData();
 
-                messageData.setMessage(receive_msg);
-                messageData.setDatetime(receive_date);
-                messageData.setName(receive_name);
-                messageData.setServer(server);
-                messageData.setOpp_profile_img(opp_imgurl);
+                    messageData.setMessage(receive_msg);
+                    messageData.setDatetime(receive_date);
+                    messageData.setName(receive_name);
+                    messageData.setServer(server);
+                    messageData.setOpp_profile_img(opp_imgurl);
 
-                mArrayList.add(messageData);
-                mAdapter.notifyDataSetChanged();
-                recyclerView.scrollToPosition(mAdapter.getItemCount() - 1);
+                    mArrayList.add(messageData);
+                    mAdapter.notifyDataSetChanged();
+                    recyclerView.scrollToPosition(mAdapter.getItemCount() - 1);
+                }
+
+
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -313,6 +324,40 @@ public class MainActivity extends AppCompatActivity{
             e.printStackTrace();
         }
     }
+
+    //메세지 디비 적용과정
+    private void uploadMessage(){
+
+        Log.e("로그2",room_idx);
+        Log.e("로그2",images);
+        Log.e("로그2",name);
+        Log.e("로그2",return_msg);
+        Log.e("로그2",formatDate);
+        Log.e("로그2",email);
+        Log.e("로그2",profile);
+
+        ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
+        Call<MessageClass> call = apiInterface.uploadMessage(room_idx,images,name,return_msg,formatDate,email,profile);
+
+
+
+        call.enqueue(new Callback<MessageClass>() {
+            @Override
+            public void onResponse(Call<MessageClass> call, retrofit2.Response<MessageClass> response) {
+
+                MessageClass messageClass = response.body();
+                Log.e("로그2",response.body().getResponse()+"");
+
+            }
+
+            @Override
+            public void onFailure(Call<MessageClass> call, Throwable t) {
+
+            }
+        });
+
+    }
+
     /* HTTPUrlConnection을 써서 POST 방식으로 phpmyadmin DB에서 값들을 가져오는 AsyncTask 클래스 정의 */
     private class GetData extends AsyncTask<String, Void, String> {
 
