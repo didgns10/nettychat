@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         bt_send = findViewById(R.id.btn_send);
         et_message = findViewById(R.id.messageBox);
         recyclerView = findViewById(R.id.messageList);
